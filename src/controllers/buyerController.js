@@ -18,4 +18,35 @@ async function getSellerCatalogue(req, res, next) {
   }
 }
 
-export default { getAllSellers, getSellerCatalogue };
+async function createOrder(req, res, next) {
+  try {
+    if (req.user.user_type !== "buyer") {
+      return res
+        .status(401)
+        .send("Unauthorised user! Only a buyer can create order");
+    }
+    const reqData = {};
+    reqData.buyerId = req.user.id;
+    reqData.sellerId = req.params.seller_id;
+    reqData.orders = req.body;
+    reqData.itemsIds = reqData.orders
+      .map((order) => {
+        return order.item_id;
+      })
+      .join();
+      console.log(reqData)
+    const itemsOfSeller = await userQueries.checkSellerItems(reqData.itemsIds, reqData.sellerId);
+    if (!itemsOfSeller) {
+      return res
+        .status(400)
+        .json("Check that items belong to seller specified");
+    }
+    const response = await userQueries.createFinalOrder(reqData);
+    return res.status(200).json(response.message);
+  } catch (err) {
+    console.log(err);
+    return next();
+  }
+}
+
+export default { getAllSellers, getSellerCatalogue, createOrder };

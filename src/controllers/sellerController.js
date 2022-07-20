@@ -19,4 +19,13 @@ async function createCatalogue(req, res, next) {
     return next();
   }
 }
-export default { createCatalogue };
+
+async function getOrderList(req, res, next) {
+  try {
+    res.json(await userQueries.getOrderList(req.user.sellerId));
+  } catch (err) {
+    console.log(err);
+    return next();
+  }
+}
+export default { createCatalogue, getOrderList };

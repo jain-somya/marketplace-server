@@ -23,6 +23,7 @@ async function register(userData) {
   }
   return { message };
 }
+
 async function createSeller(sellerData) {
   const queryString = `INSERT INTO sellers 
   (user_id,shop_name ) VALUES ('${sellerData.userId}', '${sellerData.shopName}')`;
@@ -33,7 +34,15 @@ async function createSeller(sellerData) {
 async function createCatalogue(sellerData) {
   const catalogueString = sellerData.catalogue
     .map(function (item) {
-      return "'" + item.item_name + "','" + item.price + "','" + sellerData.sellerId +"'";
+      return (
+        "'" +
+        item.item_name +
+        "','" +
+        item.price +
+        "','" +
+        sellerData.sellerId +
+        "'"
+      );
     })
     .join("),(");
   let valueString = "(" + catalogueString + ")";
@@ -64,8 +73,47 @@ async function findUserById(id) {
   const [user] = await query(queryString);
   return user;
 }
+async function checkSellerItems(itemIds, sellerId) {
+  const queryString = `SELECT seller_id FROM items WHERE id IN (${itemIds}) GROUP BY seller_id`;
+  const rows = await query(queryString);
+  console.log(rows[0].seller_id);
+  console.log(rows.length);
+  console.log(rows[0].seller_id != sellerId);
 
-async function getSellers(page = 1) {
+  if (rows.length != 1 || rows[0].seller_id != sellerId) return false;
+  return true;
+}
+
+async function createOrder({ buyerId, sellerId }) {
+  const queryString = `INSERT INTO orders 
+  (buyer_id,seller_id ) VALUES ('${buyerId}', '${sellerId}')`;
+  console.log(queryString);
+  const result = await query(queryString);
+  return result.insertId;
+}
+
+async function createFinalOrder(orderData) {
+  let orderId = await createOrder(orderData);
+  const orderString = orderData.orders
+    .map(function (order) {
+      return (
+        "'" + order.item_id + "','" + order.quantity + "','" + orderId + "'"
+      );
+    })
+    .join("),(");
+  let valueString = "(" + orderString + ")";
+
+  const queryString = `INSERT INTO order_details (item_id, quantity, order_id ) VALUES ${valueString}`;
+  console.log(queryString);
+  const result = await query(queryString);
+  let message = "Error creating Order";
+  if (result.affectedRows) {
+    message = "Order created successfully";
+  }
+  return { message };
+}
+
+async function getSellers() {
   const rows = await query(`SELECT * FROM sellers`);
   const data = rows;
   return {
@@ -73,13 +121,21 @@ async function getSellers(page = 1) {
   };
 }
 async function getSellerCatalogue(sellerId) {
-  const rows = await query(`SELECT * FROM items where seller_id='${sellerId}'`);
+  const rows = await query(`SELECT * FROM items WHERE seller_id='${sellerId}'`);
   const data = rows;
   return {
     data,
   };
 }
-
+async function getOrderList(sellerId) {
+  const rows = await query(
+    `SELECT orderId, GROUP_CONCAT(a.c) AS 'order', buyer_id AS buyerId, created FROM ( SELECT o.id AS orderId, CONCAT('item : ', item_id, ' quantity : ', quantity)AS c , buyer_id, created FROM orders o JOIN order_details od ON od.order_id = o.id WHERE o.seller_id = ${sellerId}) AS a GROUP BY a.orderId`
+  );
+  const data = rows;
+  return {
+    data,
+  };
+}
 export default {
   register,
   comparePassword,
@@ -88,4 +144,8 @@ export default {
   getSellers,
   getSellerCatalogue,
   createCatalogue,
+  checkSellerItems,
+  createOrder,
+  createFinalOrder,
+  getOrderList,
 };
