@@ -24,7 +24,7 @@ APIs
 - [x] POST /api/auth/login : Let a previously registered user log in (e.g. retrieve authentication token)
 
       Login data format:
-      {"email":"seller2@gmail.com", "password":"122233"}
+      {"email":"seller2@abc.com", "password":"122233"}
 
 - APIs for buyers
 
