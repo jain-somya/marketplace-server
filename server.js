@@ -1,19 +1,35 @@
-
-import  express from "express";
-import userRoutes from './src/routes/getUsers.js'
+import * as dotenv from "dotenv";
+dotenv.config();
+import express from "express";
+import passport from "passport";
+// import crypto from 'crypto'
+import bodyParser from "body-parser";
+import cookieParser from 'cookie-parser';
+import session from "express-session";
+import routes from "./src/routes/routes.js";
 const app = express();
 const port = 3000;
 app.use(express.json());
-app.use(
-  express.urlencoded({
-    extended: true,
-  })
-);
+app.use(cookieParser('secret'));
+app.use(session({
+  secret: 'secret',
+  resave: true,
+  saveUninitialized: false,
+  cookie: {
+      maxAge: 1000 * 60 * 60 * 24 // 86400000 1 day
+  }
+}));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+app.use(passport.initialize());
+app.use(passport.session());
+
 app.get("/", (req, res) => {
   res.json({ message: "ok" });
 });
 
-app.use("/users", userRoutes);
+app.use("/api", routes);
 
 /* Error handler middleware */
 
