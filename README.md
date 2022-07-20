@@ -5,8 +5,9 @@ How to use the project locally:
 - Create a local mysql database (add this database name in the config file in next step)
 - Add Database configs to config.js file
 - Create tables by running the command : node ./src/scripts/createDatabase.js
+- To start the project, use this command : npm start
 
-Now you are ready to begin!
+Now your project is ready to use the following apis:
 
 APIs
 
@@ -26,4 +27,3 @@ APIs
 
 - [x] POST /api/seller/create-catalog : Send a list of items to create a catalog for a seller
 - [x] GET /api/seller/orders : Retrieve the list of orders received by a seller
-
