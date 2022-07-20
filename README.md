@@ -1,3 +1,13 @@
+How to use the project locally:
+
+- Clone the respository
+- cd into the repository and install dependencies by : npm i
+- Create a local mysql database (add this database name in the config file in next step)
+- Add Database configs to config.js file
+- Create tables by running the command : node ./src/scripts/createDatabase.js
+
+Now you are ready to begin!
+
 APIs
 
 - Auth APIs
